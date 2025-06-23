@@ -4,10 +4,22 @@
 
 ## Сборка
 
-Для сборки требуется компилятор Fortran, например `gfortran` из состава GCC. В каталоге проекта выполните команду:
+Для сборки требуется компилятор Fortran, например `gfortran` из состава GCC. Если он не установлен, в Ubuntu его можно добавить командой
+
+```bash
+sudo apt-get update && sudo apt-get install -y gfortran
+```
+
+Далее в каталоге проекта выполните команду:
 
 ```bash
 gfortran stat_mod.f -o stat_mod
+```
+
+Также в репозитории присутствует версия программы на Fortran&nbsp;90 без использования `goto` — `stat_mod_refactored.f90`. Её можно собрать командой
+
+```bash
+gfortran stat_mod_refactored.f90 -o stat_mod_refactored
 ```
 
 После успешной компиляции в текущем каталоге появится исполняемый файл `stat_mod`.
