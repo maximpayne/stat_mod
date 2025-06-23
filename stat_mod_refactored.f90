@@ -4,17 +4,18 @@ program stat_mod
     real :: lambda(MAX_M), nu(MAX_M), mg(MAX_G)
     real :: kg, ns, ns1, lambd, nui
     integer :: mdi(MAX_M)
-    logical :: md(MAX_K,MAX_M), c(MAX_M), ch, cp, cq
+    logical :: md(MAX_K,MAX_M), c(MAX_M), ch, cp, cq, fail_set
     real :: t(MAX_M), tau(MAX_M), pb(MAX_M), nel(MAX_M)
     real :: a(10)
     integer :: i,j,n,nn1,nn2,m,kcm,ki,jn,neli
     real :: dd, delta, ta, zdelta, wd
-    real :: amb,u1
+    real :: amb,u1, pbi
     real :: ts,th,tm,ti,tsl
     real :: sqt, l
     integer :: k
     real :: r,d,w
-    integer :: ns_int
+    integer :: ns_int, otv_input
+    real :: ns_real
     logical :: otv
     real :: z
 
@@ -58,13 +59,14 @@ program stat_mod
     do
         write(*,*) 'Введите номер элемента'
         read(*,*) neli
-        if(neli==0) cycle
+        if(neli==0) exit
         jn=jn+1
         nel(jn)=neli
         write(*,*) 'Введите: лямбда, ну, Рв'
-        read(*,*) lambd, nui, pb(jn)
+        read(*,*) lambd, nui, pbi
         lambda(neli)=lambd
         nu(neli)=nui
+        pb(neli)=pbi
         if(jn>=m) exit
     end do
 
@@ -89,7 +91,8 @@ program stat_mod
     write(*,*) 'проверять состояние их щитов?'
     write(*,*) 'Да - введите 1'
     write(*,*) 'Нет - введите 0'
-    read(*,*) otv
+    read(*,*) otv_input
+    otv = otv_input /= 0
 
     write(*,*) '-----------------------------------'
     write(*,*) '|  №  |  лямбда |    ню   |  Рв   |'
@@ -168,16 +171,16 @@ program stat_mod
             if(c(k).and.cp) then
                 ch=.true.
             else
-                ch=.false.
+                fail_set=.false.
                 do j=1,kcm
-                    ch=.true.
+                    fail_set=.true.
                     do i=1,m
-                        if(.not.c(i) .or. .not.md(j,i)) then
-                            ch=.false.
+                        if(md(j,i) .and. c(i)) then
+                            fail_set=.false.
                             exit
                         end if
                     end do
-                    if(ch) exit
+                    if(fail_set) exit
                 end do
                 w=0.0
                 if(otv) then
@@ -189,14 +192,14 @@ program stat_mod
                         if(c(i)) w=w+mg(i)
                     end do
                 end if
-                if(w<wd) ch=.false.
+                ch = .not.fail_set .and. w >= wd
             end if
 
-            if(cp.and..not.ch) then
+            if(.not.cp .and. ch) then
                 ti=tm-th
                 ts=ts+ti
                 tsl=tsl+ti
-            else if(.not.cp.and.ch) then
+            else if(cp .and. .not.ch) then
                 th=tm
                 cq=.false.
             end if
@@ -209,9 +212,11 @@ program stat_mod
         kg=l-ts/ta/ns_int
         r=1.-l/ns_int
         d=zdelta*sqrt(r*(l-r)/ns_int)
-        write(*,33) d, delta, ns_int, kg, r
+        ns_real = real(ns_int)
+        write(*,33) d, delta, ns_real, kg, r
         if(l>0 .and. d<=dd) exit
         ns_int=ns_int+100
+        if(ns_int>1000) exit
     end do
 33  format(1x,'| ',f7.5,' | ',f5.3, ' | ',f6.0,' | ', f7.5,' | ', f7.5,' |')
     write(*,*) '---------------------------------------'
