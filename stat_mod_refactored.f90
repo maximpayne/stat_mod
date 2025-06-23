@@ -171,17 +171,7 @@ program stat_mod
             if(c(k).and.cp) then
                 ch=.true.
             else
-                fail_set=.false.
-                do j=1,kcm
-                    fail_set=.true.
-                    do i=1,m
-                        if(md(j,i) .and. c(i)) then
-                            fail_set=.false.
-                            exit
-                        end if
-                    end do
-                    if(fail_set) exit
-                end do
+                ch=.false.
                 w=0.0
                 if(otv) then
                     do i=1,ki
@@ -192,7 +182,8 @@ program stat_mod
                         if(c(i)) w=w+mg(i)
                     end do
                 end if
-                ch = .not.fail_set .and. w >= wd
+                ch = .true.
+                if(w < wd) ch = .false.
             end if
 
             if(.not.cp .and. ch) then
